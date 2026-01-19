@@ -62,10 +62,10 @@ export const shouldSendReminder = (loan: Loan): boolean => {
   // If never sent, and it's been 3+ days
   if (!loan.lastReminderSent && daysSinceLoan >= 3) return true;
   
-  // If last reminder was 5+ days ago
+  // If last reminder was 2+ days ago (changed from 5 for better follow-up)
   if (loan.lastReminderSent) {
     const daysSinceLastReminder = differenceInDays(new Date(), loan.lastReminderSent);
-    return daysSinceLastReminder >= 5;
+    return daysSinceLastReminder >= 2;
   }
   
   return false;
@@ -98,10 +98,47 @@ export const getReminderStatus = (loan: Loan): string => {
   
   if (loan.lastReminderSent) {
     const daysSinceReminder = getDaysSinceLastReminder(loan.lastReminderSent);
-    if (daysSinceReminder !== null && daysSinceReminder < 5) {
-      return `Next reminder in ${5 - daysSinceReminder} day${5 - daysSinceReminder > 1 ? 's' : ''}`;
+    if (daysSinceReminder !== null && daysSinceReminder < 2) {
+      return `Next reminder in ${2 - daysSinceReminder} day${2 - daysSinceReminder > 1 ? 's' : ''}`;
     }
   }
   
   return 'Pending';
+};
+
+// Generate WhatsApp deep link
+export const getWhatsAppLink = (phoneNumber: string, message: string): string => {
+  const cleanPhone = phoneNumber.replace(/\D/g, '');
+  const encodedMessage = encodeURIComponent(message);
+  return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+};
+
+// Generate SMS link
+export const getSMSLink = (phoneNumber: string, message: string): string => {
+  const encodedMessage = encodeURIComponent(message);
+  return `sms:${phoneNumber}?body=${encodedMessage}`;
+};
+
+// Generate Email link
+export const getEmailLink = (email: string, friendName: string, message: string): string => {
+  const subject = encodeURIComponent(`Quick reminder - ${friendName}`);
+  const body = encodeURIComponent(message);
+  return `mailto:${email}?subject=${subject}&body=${body}`;
+};
+
+// Generate email template for manual sending
+export const generateEmailTemplate = (loan: Loan): { subject: string; body: string } => {
+  const dateStr = format(loan.dateLoaned, 'MMM d, yyyy');
+  return {
+    subject: `Friendly reminder about the money from ${dateStr}`,
+    body: `Hi ${loan.friendName},
+
+Hope you're doing well! 😊
+
+I wanted to send a quick, friendly reminder about the ${loan.currency === 'INR' ? '₹' : '$'}${loan.amount} from ${dateStr}${loan.reason ? ` (${loan.reason})` : ''}.
+
+No rush at all - just wanted to check in! Let me know when works for you.
+
+Thanks so much!`
+  };
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CreateLoanData } from '@/types';
 import { createLoan } from '@/services/loanService';
-import { X, DollarSign, Calendar, User, FileText } from 'lucide-react';
+import { X, DollarSign, Calendar, User, FileText, Phone, Mail, Sparkles } from 'lucide-react';
 
 interface AddLoanFormProps {
   userId: string;
@@ -22,6 +22,8 @@ const AddLoanForm: React.FC<AddLoanFormProps> = ({ userId, isOpen, onClose, onLo
     currency: 'INR',
     dateLoaned: new Date(),
     reason: '',
+    phoneNumber: '',
+    email: '',
   });
 
   const [formData, setFormData] = useState<CreateLoanData>(getInitialFormData());
@@ -49,9 +51,7 @@ const AddLoanForm: React.FC<AddLoanFormProps> = ({ userId, isOpen, onClose, onLo
       setLoading(true);
       setError('');
       await createLoan(userId, formData);
-      
       setFormData(getInitialFormData());
-      
       onLoanAdded();
       onClose();
     } catch (err: any) {
@@ -62,47 +62,59 @@ const AddLoanForm: React.FC<AddLoanFormProps> = ({ userId, isOpen, onClose, onLo
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-card max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-4 sm:p-6 border-b dark:border-gray-700">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Add New Loan 💰</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <X size={24} />
-          </button>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content max-w-lg" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-500 via-accent-purple to-accent-cyan opacity-90"></div>
+          <div className="relative flex justify-between items-center p-6">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+                <Sparkles size={24} />
+                Add New Entry
+              </h2>
+              <p className="text-white/80 text-sm mt-1">Track money you've lent</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-red-700 dark:text-red-400 text-sm animate-slide-up">
               {error}
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              <User size={16} className="inline mr-1" />
-              Friend's Name *
+          {/* Friend's Name */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <User size={16} className="text-primary-500" />
+              Friend's Name <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={formData.friendName}
               onChange={(e) => setFormData({ ...formData, friendName: e.target.value })}
               className="input-field"
-              placeholder="e.g., Alex"
+              placeholder="e.g., Rahul"
               required
               disabled={loading}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              <DollarSign size={16} className="inline mr-1" />
-              Amount *
+          {/* Amount + Currency */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <DollarSign size={16} className="text-primary-500" />
+              Amount <span className="text-red-400">*</span>
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <input
                 type="number"
                 value={formData.amount || ''}
@@ -120,18 +132,19 @@ const AddLoanForm: React.FC<AddLoanFormProps> = ({ userId, isOpen, onClose, onLo
                 className="input-field w-24"
                 disabled={loading}
               >
-                <option value="INR">INR</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
+                <option value="INR">₹ INR</option>
+                <option value="USD">$ USD</option>
+                <option value="EUR">€ EUR</option>
+                <option value="GBP">£ GBP</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              <Calendar size={16} className="inline mr-1" />
-              Date Loaned *
+          {/* Date */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <Calendar size={16} className="text-primary-500" />
+              Date Loaned <span className="text-red-400">*</span>
             </label>
             <input
               type="date"
@@ -150,28 +163,74 @@ const AddLoanForm: React.FC<AddLoanFormProps> = ({ userId, isOpen, onClose, onLo
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              <FileText size={16} className="inline mr-1" />
-              Reason (Optional)
+          {/* Reason */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <FileText size={16} className="text-primary-500" />
+              Reason <span className="text-gray-400 text-xs font-normal">(Optional)</span>
             </label>
             <input
               type="text"
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               className="input-field"
-              placeholder="e.g., Concert tickets"
+              placeholder="e.g., Movie tickets, Lunch"
               disabled={loading}
             />
           </div>
 
-          <div className="bg-soft-blue dark:bg-blue-900/30 p-4 rounded-lg">
+          {/* Divider */}
+          <div className="divider-gradient my-6"></div>
+
+          {/* Contact Info Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Contact Info for Quick Reminders</h3>
+              <span className="text-xs text-gray-400">(Optional)</span>
+            </div>
+            
+            {/* Phone Number */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+                <Phone size={14} className="text-green-500" />
+                WhatsApp / Phone
+              </label>
+              <input
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                className="input-field"
+                placeholder="+91 98765 43210"
+                disabled={loading}
+              />
+              <p className="text-xs text-gray-400">Include country code for WhatsApp (e.g., +91)</p>
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+                <Mail size={14} className="text-red-400" />
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="input-field"
+                placeholder="friend@email.com"
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          {/* Privacy Note */}
+          <div className="p-4 bg-gradient-to-r from-soft-blue/50 to-soft-purple/50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200/50 dark:border-blue-800/30">
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              🔒 This loan is private and will only be visible to you. 
-              Your friend will only receive polite reminders that you choose to send.
+              🔒 <strong>100% Private</strong> — Only you can see this. Your friend won't know until you send a reminder.
             </p>
           </div>
 
+          {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"
@@ -183,10 +242,20 @@ const AddLoanForm: React.FC<AddLoanFormProps> = ({ userId, isOpen, onClose, onLo
             </button>
             <button
               type="submit"
-              className="flex-1 btn-primary disabled:opacity-50"
+              className="flex-1 btn-gradient disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
-              {loading ? 'Adding...' : 'Add Loan'}
+              {loading ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span>
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={18} className="mr-2" />
+                  Add Entry
+                </>
+              )}
             </button>
           </div>
         </form>

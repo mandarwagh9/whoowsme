@@ -11,6 +11,9 @@ export interface Loan {
   reminderCount: number;
   createdAt: Date;
   updatedAt: Date;
+  // Contact info for direct messaging
+  phoneNumber?: string;
+  email?: string;
 }
 
 export interface User {
@@ -32,4 +35,14 @@ export interface CreateLoanData {
   currency: string;
   dateLoaned: Date;
   reason?: string;
+  // Contact info for direct messaging
+  phoneNumber?: string;
+  email?: string;
+}
+
+export interface SubscriptionTier {
+  id: 'free' | 'premium';
+  name: string;
+  features: string[];
+  price: number;
 }
